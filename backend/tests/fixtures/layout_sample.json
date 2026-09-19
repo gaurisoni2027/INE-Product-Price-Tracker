@@ -1,0 +1,11 @@
+{
+  "revision": 626001,
+  "variant": 3,
+  "classes": {
+    "priceWrap": "pw-m4",
+    "priceValue": "pv-m4",
+    "stock": "st-m4"
+  },
+  "priceTag": "output",
+  "priceCarrier": "split"
+}

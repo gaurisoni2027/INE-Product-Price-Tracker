@@ -1,0 +1,144 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color: #0f172a;
+  background: #f8fafc;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+.app {
+  min-height: 100vh;
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+}
+.topbar a {
+  color: #334155;
+  text-decoration: none;
+  margin-left: 1rem;
+}
+.topbar a.active,
+.brand {
+  font-weight: 700;
+  color: #1d4ed8;
+}
+.main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+.banner {
+  background: #fef3c7;
+  padding: 0.5rem 1rem;
+  text-align: center;
+}
+.banner-error {
+  background: #fee2e2;
+}
+.search-input {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+}
+.stack {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.product-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+.grid-cards {
+  display: grid;
+  gap: 1rem;
+}
+.dash-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+}
+.muted {
+  color: #64748b;
+}
+.error {
+  color: #b91c1c;
+}
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+}
+.badge-ok {
+  background: #dcfce7;
+}
+.badge-bad {
+  background: #fee2e2;
+}
+.badge-warn {
+  background: #fef3c7;
+}
+.badge-muted {
+  background: #e2e8f0;
+}
+.row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.stock-ok {
+  color: #059669;
+}
+.stock-bad {
+  color: #b91c1c;
+}
+.chart-wrap,
+.table-wrap {
+  margin: 1.25rem 0;
+  background: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+th,
+td {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0.4rem 0.35rem;
+  text-align: left;
+}
+.attempt-row td {
+  background: #f1f5f9;
+  font-size: 0.85rem;
+}
+button {
+  cursor: pointer;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+}
+.btn-ghost {
+  background: transparent;
+}

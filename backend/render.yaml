@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: price-tracker-api
+    runtime: docker
+    plan: free
+    rootDir: backend
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        sync: false
+      - key: NODE_ENV
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: CRON_SECRET
+        sync: false
+      - key: STORE_BASE_URL
+        sync: false
+      - key: SCRAPER_STRATEGY
+        sync: false
+      - key: HEADLESS
+        sync: false
+      - key: MAX_ATTEMPTS
+        sync: false
+      - key: BACKOFF_BASE_MS
+        sync: false
+      - key: CHAOS_MODE
+        sync: false
+      - key: LOG_LEVEL
+        sync: false
