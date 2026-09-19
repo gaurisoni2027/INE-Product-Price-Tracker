@@ -8,7 +8,7 @@ import ProductCard from '../components/ProductCard.jsx';
 import { useDebounce } from '../hooks/useDebounce.js';
 import { fetchTracked, searchProducts, trackProduct } from '../api/endpoints.js';
 
-export default function SearchPage() {
+export default function SearchPage({ apiReady }) {
   const [q, setQ] = useState('');
   const debounced = useDebounce(q, 400);
   const qc = useQueryClient();
@@ -17,7 +17,10 @@ export default function SearchPage() {
   const searchQuery = useQuery({
     queryKey: ['search', debounced],
     queryFn: () => searchProducts(debounced),
-    enabled: debounced.trim().length >= 1,
+    enabled: apiReady && debounced.trim().length >= 1,
+    // The backend performs the deliberate, paced retries needed by the store.
+    // Retrying the whole catalog request here would create another rate-limit burst.
+    retry: false,
   });
 
   const trackMut = useMutation({
@@ -35,8 +38,14 @@ export default function SearchPage() {
     <section>
       <h1>Search store</h1>
       <SearchBar value={q} onChange={setQ} />
+      {!apiReady && q.trim() && <p className="muted">Waiting for the API to finish waking up…</p>}
       {searchQuery.isLoading && debounced && <p className="muted">Searching…</p>}
-      {searchQuery.error && <p className="error">Store unavailable — try again.</p>}
+      {searchQuery.error && (
+        <p className="error">
+          The store is temporarily unavailable.{' '}
+          <button type="button" onClick={() => searchQuery.refetch()}>Try again</button>
+        </p>
+      )}
       {searchQuery.data?.results?.length === 0 && debounced && !searchQuery.isLoading && (
         <p className="muted">No matches.</p>
       )}

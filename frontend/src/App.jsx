@@ -15,7 +15,7 @@ export default function App() {
     <Layout>
       <ServerWakeBanner active={!wake.ready} error={wake.error} />
       <Routes>
-        <Route path="/" element={<SearchPage />} />
+        <Route path="/" element={<SearchPage apiReady={wake.ready} />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/products/:id" element={<ProductDetailPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
