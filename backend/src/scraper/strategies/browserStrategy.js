@@ -13,6 +13,8 @@ const REAL_PRICE_RE = /₹\s*[\d,]+|Rs\.?\s*[\d,]+/;
 const MAX_HOVER_CYCLES = 12;
 const MAX_REVEAL_CLICKS = 6;
 const HOVER_DWELL_MS = 700;
+const PRICE_CONTROL_TIMEOUT_MS = 15_000;
+const MAX_PAGE_LOADS_PER_ATTEMPT = 2;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -33,6 +35,36 @@ async function dismissCookieBanner(page, { waitForAppearance = false } = {}) {
 }
 
 /**
+ * A product SPA sometimes reaches DOMContentLoaded without hydrating its price block.  Splitting
+ * the old 30-second wait across two navigations recovers from that state without extending the
+ * attempt budget or treating an absent control as a valid price.
+ */
+async function loadPriceUi(page, url) {
+  const reveal = page.locator(
+    'button[aria-label="Reveal price"], button[aria-label="Check price"]'
+  ).first();
+
+  for (let load = 1; load <= MAX_PAGE_LOADS_PER_ATTEMPT; load++) {
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT_MS });
+    await dismissCookieBanner(page, { waitForAppearance: true });
+
+    const ready = await reveal
+      .waitFor({ state: 'visible', timeout: PRICE_CONTROL_TIMEOUT_MS })
+      .then(() => true, () => false);
+    if (ready) return;
+
+    if (load < MAX_PAGE_LOADS_PER_ATTEMPT) {
+      await sleep(300 + Math.floor(Math.random() * 400));
+    }
+  }
+
+  throw new ScrapeError(
+    'not_loaded',
+    `Price control did not hydrate after ${MAX_PAGE_LOADS_PER_ATTEMPT} page loads`
+  );
+}
+
+/**
  * The store requires trusted pointer movement and a dwell inside the price block before it
  * enables the reveal button. Re-entering the block also makes this resilient to the store's
  * randomised hover threshold. Some reveal responses are intentionally flaky, so click until
@@ -44,7 +76,6 @@ async function revealPrice(page) {
   ).first();
   const priceArea = page.locator('.price-block').filter({ has: reveal }).filter({ hasText: 'Price hidden' }).first();
 
-  await reveal.waitFor({ state: 'visible', timeout: NAV_TIMEOUT_MS });
   await priceArea.scrollIntoViewIfNeeded();
 
   for (let cycle = 0; cycle < MAX_HOVER_CYCLES && !(await reveal.isEnabled()); cycle++) {
@@ -138,9 +169,7 @@ export async function createBrowserSession({ headed = false, chaos = false } = {
 
     try {
       const url = product.url || productPageUrl(product.external_id ?? product.externalId);
-      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT_MS });
-
-      await dismissCookieBanner(page, { waitForAppearance: true });
+      await loadPriceUi(page, url);
       await revealPrice(page);
       // Keep the shared timeout contract as a final guard against a transient React re-render.
       await page.waitForFunction(() => {
