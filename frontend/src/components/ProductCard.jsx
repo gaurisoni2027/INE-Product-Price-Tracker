@@ -1,17 +1,23 @@
 /**
  * Search result row with Track action.
  */
-export default function ProductCard({ product, tracked, onTrack, tracking }) {
-  const isTracked = tracked.has(product.externalId);
+import { Link } from 'react-router-dom';
+
+export default function ProductCard({ product, trackedProduct, onTrack, tracking }) {
+  const isTracked = Boolean(trackedProduct);
   return (
     <article className="product-card">
       <div>
-        <h3>{product.name}</h3>
-        <p className="muted">ID {product.externalId}</p>
+        <h3>
+          {isTracked ? <Link to={`/products/${trackedProduct.id}`}>{product.name}</Link> : product.name}
+        </h3>
+        <p className="muted">Store ID {product.externalId}</p>
       </div>
-      <button type="button" disabled={isTracked || tracking} onClick={() => onTrack(product)}>
-        {isTracked ? 'Tracked' : 'Track'}
-      </button>
+      {isTracked ? (
+        <Link className="button-link" to={`/products/${trackedProduct.id}`}>View details</Link>
+      ) : (
+        <button type="button" disabled={tracking} onClick={() => onTrack(product)}>Track product</button>
+      )}
     </article>
   );
 }

@@ -28,10 +28,10 @@ export default function SearchPage({ apiReady }) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tracked'] }),
   });
 
-  const trackedSet = useMemo(() => {
-    const ids = new Set();
-    for (const it of trackedQuery.data?.items ?? []) ids.add(it.externalId);
-    return ids;
+  const trackedByExternalId = useMemo(() => {
+    const products = new Map();
+    for (const item of trackedQuery.data?.items ?? []) products.set(item.externalId, item);
+    return products;
   }, [trackedQuery.data]);
 
   return (
@@ -54,7 +54,7 @@ export default function SearchPage({ apiReady }) {
           <ProductCard
             key={p.externalId}
             product={p}
-            tracked={trackedSet}
+            trackedProduct={trackedByExternalId.get(p.externalId)}
             tracking={trackMut.isPending}
             onTrack={(product) =>
               trackMut.mutate({

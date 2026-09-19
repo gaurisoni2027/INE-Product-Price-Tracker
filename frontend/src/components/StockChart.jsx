@@ -57,7 +57,7 @@ export default function StockChart({ history }) {
             type="stepAfter"
             dataKey="stock"
             stroke="#059669"
-            dot={data.length === 1}
+            dot={{ r: 3 }}
             connectNulls={false}
           />
         </LineChart>

@@ -85,7 +85,10 @@ export function createHttpSession() {
       const q = query.trim();
       if (!q) return [];
       const items = await loadCatalog();
-      const mapped = items.map((it) => mapCatalogItem(it, storeBaseUrl));
+      // The storefront occasionally repeats an item across catalog pages. Search must
+      // return one selection row per storefront product, never one row per occurrence.
+      const uniqueItems = [...new Map(items.map((item) => [String(item.id), item])).values()];
+      const mapped = uniqueItems.map((it) => mapCatalogItem(it, storeBaseUrl));
       return filterByQuery(mapped, q).slice(0, 50);
     },
 

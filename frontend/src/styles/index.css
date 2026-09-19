@@ -1,5 +1,5 @@
 :root {
-  font-family: system-ui, sans-serif;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
   color: #0f172a;
   background: #f8fafc;
 }
@@ -31,7 +31,7 @@ body {
   color: #1d4ed8;
 }
 .main {
-  max-width: 960px;
+  max-width: 1080px;
   margin: 0 auto;
   padding: 1.25rem;
 }
@@ -61,8 +61,19 @@ body {
   align-items: center;
   padding: 0.75rem 1rem;
   background: #fff;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+}
+.product-card h3 {
+  margin: 0;
+}
+.product-card h3 a {
+  color: #1d4ed8;
+  text-decoration: none;
+}
+.product-card p {
+  margin-bottom: 0;
 }
 .grid-cards {
   display: grid;
@@ -114,7 +125,7 @@ body {
   margin: 1.25rem 0;
   background: #fff;
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid #e2e8f0;
 }
 table {
@@ -135,10 +146,64 @@ td {
 button {
   cursor: pointer;
   border: 1px solid #cbd5e1;
-  background: #fff;
+  background: #1d4ed8;
+  color: #fff;
   border-radius: 6px;
   padding: 0.35rem 0.65rem;
 }
 .btn-ghost {
   background: transparent;
+  color: #334155;
+}
+.button-link {
+  display: inline-block;
+  border: 1px solid #1d4ed8;
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  background: #1d4ed8;
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+.product-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  background: #e2e8f0;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+.product-summary div {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.85rem;
+  background: #fff;
+}
+.product-summary span {
+  color: #64748b;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.product-summary a {
+  color: #1d4ed8;
+  font-weight: 700;
+}
+.chart-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.chart-title h3 {
+  margin-top: 0;
+}
+.log-panel {
+  margin-top: 1.25rem;
+}
+@media (max-width: 600px) {
+  .topbar, .product-card, .chart-title { align-items: flex-start; }
+  .product-card { gap: 0.75rem; }
+  .product-summary { grid-template-columns: 1fr; }
 }

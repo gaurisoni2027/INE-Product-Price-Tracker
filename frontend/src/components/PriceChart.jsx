@@ -39,7 +39,10 @@ export default function PriceChart({ history }) {
 
   return (
     <div className="chart-wrap">
-      <h3>Price history</h3>
+      <div className="chart-title">
+        <h3>Price history</h3>
+        <strong>Latest: {money.format(data.at(-1).price)}</strong>
+      </div>
       <ResponsiveContainer width="100%" height={260}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -60,7 +63,7 @@ export default function PriceChart({ history }) {
             type="monotone"
             dataKey="price"
             stroke="#2563eb"
-            dot={data.length === 1}
+            dot={{ r: 3 }}
             connectNulls={false}
           />
         </LineChart>

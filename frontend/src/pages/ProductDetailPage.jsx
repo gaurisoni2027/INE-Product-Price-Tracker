@@ -20,9 +20,14 @@ export default function ProductDetailPage() {
   const { id } = useParams();
   const qc = useQueryClient();
   const [refreshingAfterScrape, setRefreshingAfterScrape] = useState(false);
+  const [showScrapeLog, setShowScrapeLog] = useState(false);
   const productQ = useQuery({ queryKey: ['product', id], queryFn: () => fetchProduct(id) });
   const historyQ = useQuery({ queryKey: ['history', id], queryFn: () => fetchHistory(id) });
-  const logsQ = useQuery({ queryKey: ['logs', id], queryFn: () => fetchLogs(id) });
+  const logsQ = useQuery({
+    queryKey: ['logs', id],
+    queryFn: () => fetchLogs(id),
+    enabled: showScrapeLog,
+  });
 
   const scrapeMut = useMutation({
     mutationFn: () => scrapeNow(id),
@@ -77,10 +82,23 @@ export default function ProductDetailPage() {
         </button>
         {refreshingAfterScrape && <span className="muted">Refreshing results…</span>}
       </p>
+      <section className="product-summary" aria-label="Tracked product details">
+        <div><span>Store product ID</span><strong>{p.externalId}</strong></div>
+        <div><span>Scrape schedule</span><strong>Every {p.scrapeIntervalMin} minutes</strong></div>
+        <div><span>Last successful scrape</span><strong>{p.lastSuccessAt ? new Date(p.lastSuccessAt).toLocaleString() : 'Not yet'}</strong></div>
+        <div><span>Next scheduled scrape</span><strong>{p.nextScrapeAt ? new Date(p.nextScrapeAt).toLocaleString() : 'Pending'}</strong></div>
+        <div><span>Consecutive failures</span><strong>{p.consecutiveFailures}</strong></div>
+        <div><span>Store page</span><a href={p.url} target="_blank" rel="noreferrer">Open storefront ↗</a></div>
+      </section>
       <PriceChart history={history} />
       <StockChart history={history} />
       <HistoryTable history={history} />
-      <ScrapeLogTable runs={logsQ.data?.runs ?? []} />
+      <section className="log-panel">
+        <button type="button" onClick={() => setShowScrapeLog((visible) => !visible)}>
+          {showScrapeLog ? 'Hide scrape log' : 'Show scrape log'}
+        </button>
+        {showScrapeLog && (logsQ.isLoading ? <p className="muted">Loading scrape log…</p> : <ScrapeLogTable runs={logsQ.data?.runs ?? []} />)}
+      </section>
     </section>
   );
 }
