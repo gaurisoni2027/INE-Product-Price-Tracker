@@ -9,14 +9,18 @@ import { createSession } from '../scraper/index.js';
 import { createRecorder } from './recorder.js';
 import { runProduct } from './runner.js';
 import { logger } from '../utils/logger.js';
+import { env } from '../config/env.js';
 
 async function claimDueProducts(client, batchId) {
   const { rows: due } = await client.query(
     `select * from products
      where is_active = true and next_scrape_at <= now()
-     order by next_scrape_at
+     order by
+       case when external_id = any($1::text[]) then 0 else 1 end,
+       next_scrape_at
      for update skip locked
-     limit 25`
+     limit $2`,
+    [env.PRIORITY_PRODUCT_IDS, 25]
   );
 
   const claimed = [];

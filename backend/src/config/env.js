@@ -25,6 +25,10 @@ const envSchema = z.object({
     .optional()
     .transform((v) => v === 'true' || v === '1'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+  PRIORITY_PRODUCT_IDS: z
+    .string()
+    .default('639,876,714,331,406')
+    .transform((value) => [...new Set(value.split(',').map((id) => id.trim()).filter(Boolean))]),
 });
 
 const parsed = envSchema.safeParse(process.env);
