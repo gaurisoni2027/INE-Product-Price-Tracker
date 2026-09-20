@@ -10,11 +10,13 @@ const router = Router();
 
 router.post('/scrape', requireCronSecret, async (req, res, next) => {
   try {
-    const { batchId, claimed, claimedCount, skipped } = await claimDueBatch();
+    const { batchId, claimed, skipped } = await claimDueBatch();
     if (skipped) {
       return res.status(202).json({ batchId: null, claimed: 0, skipped: true });
     }
-    res.status(202).json({ batchId, claimed: claimedCount });
+    // External cron services only need acknowledgement. Keep this response bodyless
+    // so a provider cannot reject the trigger because of captured response output.
+    res.status(202).end();
     setImmediate(() => {
       processClaimedBatch(batchId, claimed)
         .then((result) => logger.info(result, 'cron batch finished'))

@@ -61,15 +61,16 @@ See `backend/.env.example` and `frontend/.env.example`.
 
 ## cron-job.org (two jobs)
 
-1. **Wake ping** — `GET https://YOUR-RENDER-URL/api/health`  
-   Schedule: minute **55**, every **odd** hour (e.g. 01:55, 03:55, …).
+1. **Wake ping** — `GET https://YOUR-RENDER-URL/api/health?warm=1`  
+   Schedule: minute **50**, every **odd** hour (e.g. 01:50, 03:50, …).
    This is deliberately a separate job: Render's free service can take longer than the
    cron provider's request timeout to cold-start. A timed-out wake request still starts
-   the Render instance; the scrape job runs five minutes later, after it is ready.
+   the Render instance; the scrape job runs ten minutes later, after it is ready.
 
 2. **Scrape batch** — `POST https://YOUR-RENDER-URL/api/cron/scrape`  
    Header: `X-Cron-Secret: YOUR_CRON_SECRET`  
    Schedule: minute **00**, every **even** hour (00:00, 02:00, 04:00, …).
+   It returns `202 Accepted` with an empty body and completes the batch in the background.
 
 ## Headed scrape (screen recording)
 

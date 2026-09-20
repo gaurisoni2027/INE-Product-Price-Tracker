@@ -7,8 +7,12 @@ import * as runsRepo from '../db/repos/runs.js';
 
 const router = Router();
 
-router.get('/', async (_req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
+    // Used only by the external scheduler to wake a sleeping Render instance.
+    // Do not wait on Supabase or return a body: the scheduler needs only a fast 2xx.
+    if (req.query.warm === '1') return res.status(204).end();
+
     let dbOk = false;
     let lastBatchAt = null;
     try {

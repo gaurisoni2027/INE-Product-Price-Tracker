@@ -20,6 +20,6 @@ describe('POST /api/cron/scrape', () => {
       .post('/api/cron/scrape')
       .set('X-Cron-Secret', 'test-cron-secret');
     expect(res.status).toBe(202);
-    expect(res.body).toMatchObject({ batchId: 'b1', claimed: 0 });
+    expect(res.text).toBe('');
   });
 });
