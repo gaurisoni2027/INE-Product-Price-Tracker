@@ -84,8 +84,11 @@ export async function claimDueBatch() {
 export async function processClaimedBatch(batchId, claimed) {
   if (!claimed.length) return { batchId, claimed: 0 };
   const recorder = createRecorder();
-  const session = await createSession();
+  let session;
   try {
+    // Browser launch can fail on a cold or resource-constrained host. It must not
+    // leave isBatchRunning locked, or every subsequent cron invocation is skipped.
+    session = await createSession();
     for (const { product, run } of claimed) {
       try {
         await runProduct(product, run, session.fetchReading.bind(session), recorder);
@@ -99,8 +102,38 @@ export async function processClaimedBatch(batchId, claimed) {
         });
       }
     }
+  } catch (err) {
+    const detail = String(err.message ?? err).slice(0, 1_000);
+    logger.error({ err, batchId }, 'could not start scrape batch');
+
+    // A session-start failure happens before runProduct can write attempt rows.
+    // Persist one failed attempt per claimed product so the UI never hides it.
+    for (const { product, run } of claimed) {
+      try {
+        await recorder.logAttempt({
+          runId: run.id,
+          attemptNo: 1,
+          durationMs: null,
+          outcome: 'failed',
+          httpStatus: null,
+          errorType: 'browser_launch',
+          detail,
+        });
+        await recorder.closeFailed({
+          product,
+          run,
+          attempts: 1,
+          errorType: 'browser_launch',
+        });
+      } catch (recordingError) {
+        logger.error({ err: recordingError, runId: run.id }, 'could not record batch startup failure');
+      }
+    }
+    throw err;
   } finally {
-    await session.close();
+    if (session) {
+      await session.close().catch((err) => logger.warn({ err, batchId }, 'could not close browser'));
+    }
     isBatchRunning = false;
   }
   return { batchId, claimed: claimed.length };
@@ -143,12 +176,29 @@ export async function runSingle(productId, trigger) {
     return { duplicate: true };
   }
 
-  const session = await createSession();
+  let session;
   try {
+    session = await createSession();
     const result = await runProduct(product, run, session.fetchReading.bind(session), recorder);
     return { run, result };
+  } catch (err) {
+    const detail = String(err.message ?? err).slice(0, 1_000);
+    logger.error({ err, productId }, 'could not start manual scrape');
+    await recorder.logAttempt({
+      runId: run.id,
+      attemptNo: 1,
+      durationMs: null,
+      outcome: 'failed',
+      httpStatus: null,
+      errorType: 'browser_launch',
+      detail,
+    });
+    await recorder.closeFailed({ product, run, attempts: 1, errorType: 'browser_launch' });
+    return { run, result: { ok: false, error: { type: 'browser_launch', detail } } };
   } finally {
-    await session.close();
+    if (session) {
+      await session.close().catch((err) => logger.warn({ err, productId }, 'could not close browser'));
+    }
   }
 }
 
