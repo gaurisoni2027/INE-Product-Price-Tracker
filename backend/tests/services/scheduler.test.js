@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import pg from 'pg';
-import { claimDueBatch, _resetBatchGuardForTests } from '../../src/services/scheduler.js';
+import { claimDueBatch } from '../../src/services/scheduler.js';
 
 const url = process.env.TEST_DATABASE_URL;
 const describeIf = url ? describe : describe.skip;
@@ -10,7 +10,6 @@ describeIf('scheduler integration', () => {
   let productId;
 
   beforeAll(async () => {
-    _resetBatchGuardForTests();
     const client = await pool.connect();
     try {
       await client.query(`delete from products where external_id = 'sched-test-1'`);
@@ -33,10 +32,8 @@ describeIf('scheduler integration', () => {
   });
 
   it('claim is idempotent for same scheduled_for', async () => {
-    _resetBatchGuardForTests();
     const first = await claimDueBatch();
     expect(first.claimedCount).toBeGreaterThanOrEqual(1);
-    _resetBatchGuardForTests();
     const second = await claimDueBatch();
     expect(second.claimedCount).toBe(0);
   });

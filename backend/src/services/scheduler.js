@@ -10,8 +10,6 @@ import { createRecorder } from './recorder.js';
 import { runProduct } from './runner.js';
 import { logger } from '../utils/logger.js';
 
-let isBatchRunning = false;
-
 async function claimDueProducts(client, batchId) {
   const { rows: due } = await client.query(
     `select * from products
@@ -56,10 +54,6 @@ async function claimDueProducts(client, batchId) {
 }
 
 export async function claimDueBatch() {
-  if (isBatchRunning) {
-    return { skipped: true, batchId: null, claimed: [], claimedCount: 0 };
-  }
-  isBatchRunning = true;
   const batchId = randomUUID();
   const client = await pool.connect();
   let claimed = [];
@@ -70,13 +64,9 @@ export async function claimDueBatch() {
     await client.query('commit');
   } catch (err) {
     await client.query('rollback');
-    isBatchRunning = false;
     throw err;
   } finally {
     client.release();
-  }
-  if (!claimed.length) {
-    isBatchRunning = false;
   }
   return { batchId, claimed, claimedCount: claimed.length };
 }
@@ -86,8 +76,8 @@ export async function processClaimedBatch(batchId, claimed) {
   const recorder = createRecorder();
   let session;
   try {
-    // Browser launch can fail on a cold or resource-constrained host. It must not
-    // leave isBatchRunning locked, or every subsequent cron invocation is skipped.
+    // Browser launch can fail on a cold or resource-constrained host. Each failure
+    // is recorded below so the next database-backed cron claim can proceed safely.
     session = await createSession();
     for (const { product, run } of claimed) {
       try {
@@ -134,14 +124,12 @@ export async function processClaimedBatch(batchId, claimed) {
     if (session) {
       await session.close().catch((err) => logger.warn({ err, batchId }, 'could not close browser'));
     }
-    isBatchRunning = false;
   }
   return { batchId, claimed: claimed.length };
 }
 
 export async function runDueBatch() {
-  const { batchId, claimed, skipped } = await claimDueBatch();
-  if (skipped) return { skipped: true, batchId: null, claimed: 0 };
+  const { batchId, claimed } = await claimDueBatch();
   await processClaimedBatch(batchId, claimed);
   return { batchId, claimed: claimed.length };
 }
@@ -200,8 +188,4 @@ export async function runSingle(productId, trigger) {
       await session.close().catch((err) => logger.warn({ err, productId }, 'could not close browser'));
     }
   }
-}
-
-export function _resetBatchGuardForTests() {
-  isBatchRunning = false;
 }
